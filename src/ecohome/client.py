@@ -10,6 +10,7 @@ import httpx
 _CLOUDSERVICE_BASE_URL = "https://ehome.ne01.com/cloudservice/api/app"
 _CRM_BASE_URL = "https://ehome.ne01.com/crmservice/api/app"
 _CREDENTIALS_FILE = Path.home() / ".ecohome" / "credentials.json"
+_LANGUAGE = "en_US"
 
 # The server is occasionally slow to respond, so allow 30s for this.
 _DEFAULT_TIMEOUT = httpx.Timeout(5.0, read=30.0)
@@ -25,7 +26,7 @@ _HEADERS = {
         "Html5Plus/1.0 (Immersed/20) uni-app"
     ),
     "time-zone": "Europe/Berlin",
-    "Accept-Language": "nl-NL,nl;q=0.9",
+    "Accept-Language": "en-US,en;q=0.9",
 }
 
 
@@ -131,7 +132,7 @@ class AsyncEcoHomeClient:
         async with await asyncio.to_thread(lambda: httpx.AsyncClient(timeout=timeout or _DEFAULT_TIMEOUT)) as http:
             response = await http.post(
                 f"{_CLOUDSERVICE_BASE_URL}/user/login.json",
-                params={"lang": "nl_NL"},
+                params={"lang": _LANGUAGE},
                 headers=_HEADERS,
                 json={"user_name": username, "password": password_md5, "type": 2},
             )
@@ -172,7 +173,7 @@ class AsyncEcoHomeClient:
         async with await self._http(timeout) as http:
             response = await http.get(
                 f"{_CLOUDSERVICE_BASE_URL}/user/getUserInfo.json",
-                params={"lang": "nl_NL"},
+                params={"lang": _LANGUAGE},
                 headers=self._auth_headers(),
             )
         try:
@@ -187,7 +188,7 @@ class AsyncEcoHomeClient:
         async with await self._http(timeout) as http:
             response = await http.post(
                 f"{_CLOUDSERVICE_BASE_URL}/user/logout.json",
-                params={"lang": "nl_NL"},
+                params={"lang": _LANGUAGE},
                 headers=self._auth_headers(),
                 json={"from_user": self._user_id},
             )
@@ -219,7 +220,7 @@ class AsyncEcoHomeClient:
         async with await self._http(timeout) as http:
             response = await http.post(
                 f"{_CLOUDSERVICE_BASE_URL}/device/deviceList.json",
-                params={"lang": "nl_NL"},
+                params={"lang": _LANGUAGE},
                 headers=self._auth_headers(),
                 json={"page_index": "1", "page_size": str(page_size)},
             )
@@ -234,7 +235,7 @@ class AsyncEcoHomeClient:
         async with await self._http(timeout) as http:
             response = await http.post(
                 f"{_CLOUDSERVICE_BASE_URL}/deviceInfo/getDeviceBaseInfo.json",
-                params={"lang": "nl_NL"},
+                params={"lang": _LANGUAGE},
                 headers=self._auth_headers(),
                 json={"device_code": device_code},
             )
@@ -247,7 +248,7 @@ class AsyncEcoHomeClient:
         async with await self._http(timeout) as http:
             response = await http.post(
                 f"{_CRM_BASE_URL}/deviceInfo/getDeviceDetailV3",
-                params={"lang": "nl_NL"},
+                params={"lang": _LANGUAGE},
                 headers=self._auth_headers(),
                 json={"deviceCode": device_code},
             )
@@ -263,7 +264,7 @@ class AsyncEcoHomeClient:
         async with await self._http(timeout) as http:
             response = await http.post(
                 f"{_CRM_BASE_URL}/deviceInfo/paramListV3",
-                params={"lang": "nl_NL"},
+                params={"lang": _LANGUAGE},
                 headers=self._auth_headers(),
                 json={"deviceCode": device_code, "type": param_type, "isAutoRefresh": False},
             )
@@ -283,13 +284,15 @@ class AsyncEcoHomeClient:
         url = f"{_CLOUDSERVICE_BASE_URL}/deviceInfo/updateSwitchSate.json"
         body = {"device_code": device_code, "address": address, "value": value}
         if dry_run:
-            print(f"[dry-run] POST {url}?lang=nl_NL")
+            print(f"[dry-run] POST {url}?lang={_LANGUAGE}")
             print(json.dumps(body, indent=2))
             return
         for attempt in range(self._autoretries + 1):
             try:
                 async with await self._http(timeout) as http:
-                    response = await http.post(url, params={"lang": "nl_NL"}, headers=self._auth_headers(), json=body)
+                    response = await http.post(
+                        url, params={"lang": _LANGUAGE}, headers=self._auth_headers(), json=body
+                    )
                 response.raise_for_status()
                 data = response.json()
                 _raise_on_error(data, "updateSwitchState")
@@ -309,11 +312,11 @@ class AsyncEcoHomeClient:
         url = f"{_CLOUDSERVICE_BASE_URL}/deviceInfo/controlOfValue.json"
         body = {"device_code": device_code, "address": address, "value": value}
         if dry_run:
-            print(f"[dry-run] POST {url}?lang=nl_NL")
+            print(f"[dry-run] POST {url}?lang={_LANGUAGE}")
             print(json.dumps(body, indent=2))
             return
         async with await self._http(timeout) as http:
-            response = await http.post(url, params={"lang": "nl_NL"}, headers=self._auth_headers(), json=body)
+            response = await http.post(url, params={"lang": _LANGUAGE}, headers=self._auth_headers(), json=body)
         response.raise_for_status()
         data = response.json()
         _raise_on_error(data, "controlOfValue")
