@@ -109,6 +109,13 @@ client.update_switch_state(device_code, address="1020", value=True)
 client.logout()
 ```
 
+API responses default to Dutch for backward compatibility. Pass a full locale
+when logging in to request another supported language:
+
+```python
+client = EcoHomeClient.login("you@example.com", "yourpassword", language="en_US")
+```
+
 ## Credentials storage
 
 Credentials (username, user ID, token, session cookie) are stored in
